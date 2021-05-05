@@ -1,6 +1,27 @@
 import CSS from "csstype";
 import { BoardProps } from "boardgame.io/react";
 import { State } from "./Game";
+import useImage from "use-image";
+import { Stage, Layer, Rect, Text, Image } from "react-konva";
+
+const RectComp = () => {
+  return (
+    <Rect x={20} y={20} width={50} height={50} fill="black" shadowBlur={5} />
+  );
+};
+
+export const Board = ({ ctx, moves, G }: BoardProps<State>) => {
+  const [image] = useImage("/13_sheep_a.jpeg");
+  return (
+    <Stage width={window.innerWidth} height={window.innerHeight}>
+      <Layer>
+        <Image image={image} />
+        <Text text="Try click on rect" />
+        <RectComp />
+      </Layer>
+    </Stage>
+  );
+};
 
 export const TicTacToeBoard = ({ ctx, moves, G }: BoardProps<State>) => {
   const onClick = (id: number) => {
