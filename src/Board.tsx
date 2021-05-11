@@ -2,22 +2,63 @@ import CSS from "csstype";
 import { BoardProps } from "boardgame.io/react";
 import { State } from "./Game";
 import useImage from "use-image";
-import { Stage, Layer, Rect, Text, Image } from "react-konva";
+import { Stage, Layer, Rect, Image, Group } from "react-konva";
+import { KonvaEventObject, Node } from "konva/types/Node";
+import React from "react";
+import Konva from "konva";
 
-const RectComp = () => {
+const RectComp = ({ pos }: { pos: Konva.Vector2d }) => {
   return (
-    <Rect x={20} y={20} width={50} height={50} fill="black" shadowBlur={5} />
+    <Rect
+      x={pos.x}
+      y={pos.y}
+      width={50}
+      height={50}
+      fill="black"
+      shadowBlur={5}
+    />
   );
 };
 
+const getMousePosition = (node: Node) => {
+  const transform = node.getAbsoluteTransform().copy();
+  // to detect relative position we need to invert transform
+  transform.invert();
+
+  // get pointer (say mouse or touch) position
+  const pos = node.getStage()?.getPointerPosition() ?? { x: 0, y: 0 };
+
+  // now we can find relative point
+  return transform.point(pos);
+};
+
 export const Board = ({ ctx, moves, G }: BoardProps<State>) => {
+  const [pos, setPos] = React.useState({ x: 0, y: 0 });
+
   const [image] = useImage("/13_sheep_a.jpeg");
+  const groupRef = React.useRef<Konva.Group>(null);
+  const layerRef = React.useRef<Konva.Layer>(null);
+  // const rectRef = React.useRef<Konva.Rect>(null);
+
+  const mouseMove = (e: KonvaEventObject<MouseEvent>) => {
+    if (groupRef.current) {
+      const mousePos = getMousePosition(groupRef.current);
+      setPos(mousePos);
+      // layerRef.current?.batchDraw();
+    }
+  };
+
   return (
-    <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer>
+    <Stage
+      width={window.innerWidth}
+      height={window.innerHeight}
+      onMouseMove={mouseMove}
+    >
+      <Layer ref={layerRef}>
         <Image image={image} />
-        <Text text="Try click on rect" />
-        <RectComp />
+        <Group ref={groupRef}>
+          <RectComp pos={pos} />
+        </Group>
       </Layer>
     </Stage>
   );
